@@ -1,20 +1,21 @@
 #-----------INPUTS TO MAIN PROGRAM  -------------------
 #max_step = 1
-stop_time = 1e-7
+#stop_time = 5e-3
+stop_time = 5e-3
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic =  0   0  0
 geometry.coord_sys   =  0       # 0 => cart
 geometry.prob_lo     =  0.0      0.0     0.0 
-geometry.prob_hi     =  0.2      0.1     0.1
-amr.n_cell           =  128      64    32
+geometry.prob_hi     =  2.4      0.8     0.2
+amr.n_cell           =  1440     480    8
 
 # >>>>>>>>>>>>>  BC KEYWORDS <<<<<<<<<<<<<<<<<<<<<<
 # Interior, UserBC, Symmetry, SlipWall, NoSlipWall
 # >>>>>>>>>>>>>  BC KEYWORDS <<<<<<<<<<<<<<<<<<<<<<
 
-pelec.lo_bc       =  "Hard"      "Hard" "SlipWall"
-pelec.hi_bc       =  "FOExtrap"  "Hard" "SlipWall"
+pelec.lo_bc       =  "Hard"     "SlipWall" "SlipWall"
+pelec.hi_bc       =  "FOExtrap" "SlipWall" "SlipWall"
 
 # WHICH PHYSICS
 pelec.do_hydro = 1
@@ -25,18 +26,23 @@ pelec.diffuse_spec = 1
 pelec.diffuse_enth = 1
 pelec.chem_integrator = "ReactorCvode"
 #pelec.chem_integrator = "ReactorRK64"
-cvode.solve_type = GMRES
-cvode.precond_type = precGMRES
-pelec.sdc_iters = 1
-#pelec.do_mol=1
+#pelec.chem_integrator = "ReactorArkode"
+cvode.solve_type = denseAJ_direct #precGMRES
+cvode.precond_type = dense_simplified_AJacobian
 #cvode.max_order = 4
+#cvode.precond_type = dense_simplified_AJacobian
+
+ode.clean_init_massfrac = 1
+ode.rtol = 1e-12
+ode.atol = 1e-14
+ode.use_erkstep=1
+pelec.do_mol = 0
 
 # TIME STEP CONTROL
 pelec.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
-pelec.cfl            = 0.3     # cfl number for hyperbolic system
+pelec.cfl            = 0.2     # cfl number for hyperbolic system
 pelec.init_shrink    = 1.0    # scale back initial timestep
 pelec.change_max     = 1.05     # maximum increase in dt over successive steps
-pelec.fixed_dt       = 1e-9
 
 # DIAGNOSTICS & VERBOSITY
 pelec.sum_interval   = 1       # timesteps between computing mass
@@ -45,11 +51,11 @@ amr.v                = 1       # verbosity in Amr.cpp
 #amr.grid_log         = grdlog  # name of grid logging file
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 0      # maximum level number allowed
-amr.ref_ratio       = 4 4 4 4 # refinement ratio
-amr.regrid_int      = 1000       # how often to regrid
+amr.max_level       = 3      # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.regrid_int      = 2       # how often to regrid
 amr.blocking_factor = 8       # block factor in grid generation
-amr.max_grid_size   = 8
+amr.max_grid_size   = 128
  
 # EMBEDDED GEOMETRY 
 eb2.geom_type = "all_regular"
@@ -57,31 +63,31 @@ eb2.geom_type = "all_regular"
 #TAGGING
 #amr.refinement_indicators = box1
 #tagging.temperr = 3500
-#tagging.tempgrad = 500
-#tagging.max_temperr_lev = 2
+tagging.tempgrad = 100
+tagging.max_tempgrad_lev = 3
+#pelec.flame_trac_name= CH2O
+#tagging.max_ftracerr_lev = 4
+#tagging.ftracerr = 1e-8
 #tagging.max_tempgrad_lev = 4
-#tagging.vorterr = 1e7
-#tagging.max_vorterr_lev = 4
+#tagging.vorterr = 5e4
+#tagging.max_vorterr_lev = 3
 #tagging.presserr = 4e7
 #tagging.max_presserr_lev = 4
-tagging.refinement_indicators = yLow
-tagging.yLow.max_level=1
-tagging.yLow.in_box_lo = 0.03 0.03 
-tagging.yLow.in_box_hi = 0.07 0.07
+#amr.box1.max_level      = 4
+#amr.box1.in_box_lo      = 0.04  0.0 0.0
+#amr.box1.in_box_hi      = 0.065 0.1 0.1
 
 # CHECKPOINT FILES
-amr.checkpoint_files_output = 0
+amr.checkpoint_files_output = 1
 amr.check_file      = chk      # root name of checkpoint file
-amr.check_int       = 500       # for cluster - number of timesteps between checkpoints
-#amr.check_per = 1e-7
+#amr.check_int       = 500       # for cluster - number of timesteps between checkpoints
+amr.check_per = 1e-6
 
 # PLOTFILES
 amr.plot_files_output = 1
 amr.plot_file       = plt
-amr.small_plot_file = sootfoil
-#amr.plot_int        = 100 #for cluster
-amr.plot_per = 8e-9
-amr.small_plot_per = 1e-9
+#amr.plot_int        = 1 #for cluster
+amr.plot_per = 1e-6
 amr.plot_vars = ALL
 amr.derive_plot_vars = MachNumber density xmom ymom zmom Temp pressure x_velocity y_velocity z_velocity magvel magvort
 pelec.plot_rhoy = 0
@@ -91,7 +97,7 @@ pelec.plot_massfrac = 1
 prob.do_perturb = 1
 prob.P_amb = 5066250
 prob.T_amb = 950
-prob.Y_H2 = 0.028522 
+prob.Y_H2 = 0.028522
 prob.Y_N2 = 0.745128
 prob.Y_O2 = 0.22635
 prob.D_CJ = 195031.99593601655
@@ -99,14 +105,64 @@ prob.delta_half = 0.04
 prob.frac_rho_fluc = 1.0
 prob.znd_datafile = "h2_air.dat"
 prob.PostStep = 1
-prob.PostRestart = 0
-prob.x_ZND = 0.05 #location of start of ZND
-prob.A = 0.005 #amplitude of initial ZND oscillation
-prob.n = 30 #number of waves in initial ZND perturbation
-prob.do_sfr = 1 #flag to correct sootfoil in SFR
-prob.t_end_turb = 5e-6 #for this initial period we will keep perturbing density to destabilize the ZND wave
+prob.PostRestart = 1
+prob.x_ZND = 0.8 #location of start of ZND
+prob.A = 0.024 #amplitude of initial ZND oscillation (recommended 1/100 of domain lengths)
+prob.n = 5 #number of waves in initial ZND perturbationhome/suo-yang/ramac106/run/NDW_2D/Case1
+prob.t_end_turb = 0e-6 #for this initial period we will keep perturbing density to destabilize the ZND wave
 
-#amr.restart=chk19126        
+amr.restart=chk10583
+#pelec.init_pltfile=plt18941 
 
 #amrex.async_out=1
 #pelec.diagnostics = xnormP ynormP znormP wall1 wall2 wall3 wall4
+
+pelec.xnormP.type = DiagFramePlane                             # Diagnostic type
+pelec.xnormP.file = xNormCenter                                # Output file prefix
+pelec.xnormP.normal = 0                                        # Plane normal (0, 1 or 2 for x, y or z)
+pelec.xnormP.center = 0.05                                    # Coordinate in the normal direction
+pelec.xnormP.int    = 1000                                    # Frequency (as step #) for performing the diagnostic
+pelec.xnormP.interpolation = Quadratic                         # [OPT, DEF=Linear] Interpolation type : Linear or Quadratic
+pelec.xnormP.field_names = Temp x_velocity y_velocity z_velocity Y(H2O) Y(N2) Y(O2) Y(H2) Y(HO2) Y(H2O2) Y(H) Y(OH) Y(O) MachNumber lambda viscosity density x y z heatRelease pressure magvort divu    # List of variables outputted to the 2D pltfile
+
+pelec.ynormP.type = DiagFramePlane                             # Diagnostic type
+pelec.ynormP.file = yNormCenter                                # Output file prefix
+pelec.ynormP.normal = 1                                        # Plane normal (0, 1 or 2 for x, y or z)
+pelec.ynormP.center = 0.05                                    # Coordinate in the normal direction
+pelec.ynormP.int    = 500                                     # Frequency (as step #) for performing the diagnostic
+pelec.ynormP.interpolation = Quadratic                         # [OPT, DEF=Linear] Interpolation type : Linear or Quadratic
+pelec.ynormP.field_names = Temp x_velocity y_velocity z_velocity Y(H2O) Y(N2) Y(O2) Y(H2) Y(HO2) Y(H2O2) Y(H) Y(OH) Y(O) MachNumber lambda viscosity density x y z heatRelease pressure magvort divu    # List of variables outputted to the 2D pltfile
+
+pelec.znormP.type = DiagFramePlane                             # Diagnostic type
+pelec.znormP.file = zNormCenter                                # Output file prefix
+pelec.znormP.normal = 2                                        # Plane normal (0, 1 or 2 for x, y or z)
+pelec.znormP.center = 0.05                                    # Coordinate in the normal direction
+pelec.znormP.int    = 500    1024                                 # Plane normal (0, 1 or 2 for x, y or z)
+pelec.wall1.center = 0.0                                    # Coordinate in the normal direction
+pelec.wall1.int    = 100                                     # Frequency (as step #) for performing the diagnostic
+pelec.wall1.interpolation = Quadratic                         # [OPT, DEF=Linear] Interpolation type : Linear or Quadratic
+pelec.wall1.field_names = Temp x_velocity y_velocity z_velocity Y(H2O) Y(N2) Y(O2) Y(H2) Y(HO2) Y(H2O2) Y(H) Y(OH) Y(O) MachNumber lambda viscosity density x y z heatRelease pressure magvort divu    # List of variables outputted to the 2D pltfile
+
+pelec.wall2.type = DiagFramePlane                             # Diagnostic type
+pelec.wall2.file = wall2                                # Output file prefix
+pelec.wall2.normal = 2                                        # Plane normal (0, 1 or 2 for x, y or z)
+pelec.wall2.center = 0.0                                    # Coordinate in the normal direction
+pelec.wall2.int    = 100                                     # Frequency (as step #) for performing the diagnostic
+pelec.wall2.interpolation = Quadratic                         # [OPT, DEF=Linear] Interpolation type : Linear or Quadratic
+pelec.wall2.field_names = Temp x_velocity y_velocity z_velocity Y(H2O) Y(N2) Y(O2) Y(H2) Y(HO2) Y(H2O2) Y(H) Y(OH) Y(O) MachNumber lambda viscosity density x y z heatRelease pressure magvort divu    # List of variables outputted to the 2D pltfile
+
+pelec.wall3.type = DiagFramePlane                             # Diagnostic type
+pelec.wall3.file = wall3                                # Output file prefix
+pelec.wall3.normal = 1                                        # Plane normal (0, 1 or 2 for x, y or z)
+pelec.wall3.center = 1.0                                    # Coordinate in the normal direction
+pelec.wall3.int    = 100                                     # Frequency (as step #) for performing the diagnostic
+pelec.wall3.interpolation = Quadratic                         # [OPT, DEF=Linear] Interpolation type : Linear or Quadratic
+pelec.wall3.field_names = Temp x_velocity y_velocity z_velocity Y(H2O) Y(N2) Y(O2) Y(H2) Y(HO2) Y(H2O2) Y(H) Y(OH) Y(O) MachNumber lambda viscosity density x y z heatRelease pressure magvort divu    # List of variables outputted to the 2D pltfile
+
+pelec.wall4.type = DiagFramePlane                             # Diagnostic type
+pelec.wall4.file = wall4                                # Output file prefix
+pelec.wall4.normal = 2                                        # Plane normal (0, 1 or 2 for x, y or z)
+pelec.wall4.center = 1.0                                    # Coordinate in the normal direction
+pelec.wall4.int    = 100                                     # Frequency (as step #) for performing the diagnostic
+pelec.wall4.interpolation = Quadratic                         # [OPT, DEF=Linear] Interpolation type : Linear or Quadratic
+pelec.wall4.field_names = Temp x_velocity y_velocity z_velocity Y(H2O) Y(N2) Y(O2) Y(H2) Y(HO2) Y(H2O2) Y(H) Y(OH) Y(O) MachNumber lambda viscosity density x y z heatRelease pressure magvort divu    # List of variables outputted to the 2D pltfile

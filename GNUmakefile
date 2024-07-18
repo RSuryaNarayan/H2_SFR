@@ -35,5 +35,5 @@ Transport_Model := Simple
 # GNU Make
 Bpack := ./Make.package
 Blocs := .
-PELE_HOME := /project/mr-suo-yang/ramac106/PeleC_SFR_sootfoil
+PELE_HOME := /home/suo-yang/ramac106/run/PeleC
 include $(PELE_HOME)/Exec/Make.PeleC

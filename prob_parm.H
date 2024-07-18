@@ -1,5 +1,5 @@
-#ifndef _PROB_PARM_H_
-#define _PROB_PARM_H_
+#ifndef PROB_PARM_H
+#define PROB_PARM_H
 
 #include <AMReX_REAL.H>
 #include <AMReX_GpuQualifiers.H>
@@ -7,7 +7,7 @@
 
 struct ProbParmDevice
 {
-  int do_perturb = 1;
+ int do_perturb = 1;
   amrex::Real P_amb = 1013250.0;
   amrex::Real T_amb = 0.0;
   amrex::Real rho_amb = 0.00116;
@@ -15,14 +15,13 @@ struct ProbParmDevice
   amrex::Real Y_H2 = 0.028522;
   amrex::Real Y_O2 = 0.22635;
   amrex::Real Y_N2 = 0.74512;
-  amrex::Real D_CJ = 201362.41656135667;
+  amrex::Real D_CJ = 224780.45286474353;
   amrex::Real delta_half = 0.0013305;
   amrex::Real frac_rho_fluc = 1.0;
   amrex::Real x_ZND = 1.0;
   amrex::Real A = 0.05;
   amrex::Real n = 200;
   amrex::Real t_end_turb = 1e-6;
-  amrex::Real do_sfr = 1;
   amrex::GpuArray<amrex::Real, NUM_SPECIES> massfrac = {0.0};
   
   // soot foil
