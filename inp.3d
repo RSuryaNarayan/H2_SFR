@@ -1,0 +1,112 @@
+#-----------INPUTS TO MAIN PROGRAM  -------------------
+#max_step = 1
+stop_time = 1e-7
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic =  0   0  0
+geometry.coord_sys   =  0       # 0 => cart
+geometry.prob_lo     =  0.0      0.0     0.0 
+geometry.prob_hi     =  0.2      0.1     0.1
+amr.n_cell           =  128      64    32
+
+# >>>>>>>>>>>>>  BC KEYWORDS <<<<<<<<<<<<<<<<<<<<<<
+# Interior, UserBC, Symmetry, SlipWall, NoSlipWall
+# >>>>>>>>>>>>>  BC KEYWORDS <<<<<<<<<<<<<<<<<<<<<<
+
+pelec.lo_bc       =  "Hard"      "Hard" "SlipWall"
+pelec.hi_bc       =  "FOExtrap"  "Hard" "SlipWall"
+
+# WHICH PHYSICS
+pelec.do_hydro = 1
+pelec.do_react = 1
+pelec.diffuse_temp = 1
+pelec.diffuse_vel  = 1
+pelec.diffuse_spec = 1
+pelec.diffuse_enth = 1
+pelec.chem_integrator = "ReactorCvode"
+#pelec.chem_integrator = "ReactorRK64"
+cvode.solve_type = GMRES
+cvode.precond_type = precGMRES
+pelec.sdc_iters = 1
+#pelec.do_mol=1
+#cvode.max_order = 4
+
+# TIME STEP CONTROL
+pelec.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+pelec.cfl            = 0.3     # cfl number for hyperbolic system
+pelec.init_shrink    = 1.0    # scale back initial timestep
+pelec.change_max     = 1.05     # maximum increase in dt over successive steps
+pelec.fixed_dt       = 1e-9
+
+# DIAGNOSTICS & VERBOSITY
+pelec.sum_interval   = 1       # timesteps between computing mass
+pelec.v              = 1       # verbosity in PeleC cpp files
+amr.v                = 1       # verbosity in Amr.cpp
+#amr.grid_log         = grdlog  # name of grid logging file
+
+# REFINEMENT / REGRIDDING
+amr.max_level       = 0      # maximum level number allowed
+amr.ref_ratio       = 4 4 4 4 # refinement ratio
+amr.regrid_int      = 1000       # how often to regrid
+amr.blocking_factor = 8       # block factor in grid generation
+amr.max_grid_size   = 8
+ 
+# EMBEDDED GEOMETRY 
+eb2.geom_type = "all_regular"
+
+#TAGGING
+#amr.refinement_indicators = box1
+#tagging.temperr = 3500
+#tagging.tempgrad = 500
+#tagging.max_temperr_lev = 2
+#tagging.max_tempgrad_lev = 4
+#tagging.vorterr = 1e7
+#tagging.max_vorterr_lev = 4
+#tagging.presserr = 4e7
+#tagging.max_presserr_lev = 4
+tagging.refinement_indicators = yLow
+tagging.yLow.max_level=1
+tagging.yLow.in_box_lo = 0.03 0.03 
+tagging.yLow.in_box_hi = 0.07 0.07
+
+# CHECKPOINT FILES
+amr.checkpoint_files_output = 0
+amr.check_file      = chk      # root name of checkpoint file
+amr.check_int       = 500       # for cluster - number of timesteps between checkpoints
+#amr.check_per = 1e-7
+
+# PLOTFILES
+amr.plot_files_output = 1
+amr.plot_file       = plt
+amr.small_plot_file = sootfoil
+#amr.plot_int        = 100 #for cluster
+amr.plot_per = 8e-9
+amr.small_plot_per = 1e-9
+amr.plot_vars = ALL
+amr.derive_plot_vars = MachNumber density xmom ymom zmom Temp pressure x_velocity y_velocity z_velocity magvel magvort
+pelec.plot_rhoy = 0
+pelec.plot_massfrac = 1
+
+# PROBLEM PARAMS
+prob.do_perturb = 1
+prob.P_amb = 5066250
+prob.T_amb = 950
+prob.Y_H2 = 0.028522 
+prob.Y_N2 = 0.745128
+prob.Y_O2 = 0.22635
+prob.D_CJ = 195031.99593601655
+prob.delta_half = 0.04
+prob.frac_rho_fluc = 1.0
+prob.znd_datafile = "h2_air.dat"
+prob.PostStep = 1
+prob.PostRestart = 0
+prob.x_ZND = 0.05 #location of start of ZND
+prob.A = 0.005 #amplitude of initial ZND oscillation
+prob.n = 30 #number of waves in initial ZND perturbation
+prob.do_sfr = 1 #flag to correct sootfoil in SFR
+prob.t_end_turb = 5e-6 #for this initial period we will keep perturbing density to destabilize the ZND wave
+
+#amr.restart=chk19126        
+
+#amrex.async_out=1
+#pelec.diagnostics = xnormP ynormP znormP wall1 wall2 wall3 wall4
